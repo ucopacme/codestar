@@ -4,4 +4,4 @@ import cdk = require('@aws-cdk/core');
 import { CdkFargateDemoStack } from '../lib/cdk-fargate-demo-stack';
 
 const app = new cdk.App();
-new CdkFargateDemoStack(app, 'CdkFargateDemoStack');
+new CdkFargateDemoStack(app, 'HelloFargate');
