@@ -1,0 +1,575 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "UCOP ACME toolchain",
+  "Parameters": {
+    "ProjectId": {
+      "Description": "Name of your application.",
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "CodeCommitRepo": {
+      "Description": "Application CodeCommit repository code",
+      "Properties": {
+        "RepositoryDescription": {
+          "Fn::Sub": "${ProjectId} repository"
+        },
+        "RepositoryName": {
+          "Ref": "ProjectId"
+        }
+      },
+      "Type": "AWS::CodeCommit::Repository"
+    },
+    "CodeBuildRole": {
+      "Description": "CodeBuild IAM service role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com"
+              }
+            }
+          ]
+        },
+        "Path": "/",
+        "RoleName": {
+          "Fn::Sub": "CodeStarWorker-${ProjectId}-CodeBuild"
+        }
+      },
+      "Type": "AWS::IAM::Role"
+    },
+    "CodeBuildPolicy": {
+      "Description": "IAM CodeBuild role policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:*",
+                "s3:*",
+                "kms:GenerateDataKey*",
+                "kms:Encrypt",
+                "kms:Decrypt"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }
+          ]
+        },
+        "PolicyName": "CodeStarWorkerCodeBuildPolicy",
+        "Roles": [
+          {
+            "Ref": "CodeBuildRole"
+          }
+        ]
+      },
+      "Type": "AWS::IAM::Policy"
+    },
+    "CodeBuildProject": {
+      "DependsOn": [
+        "CodeBuildPolicy"
+      ],
+      "Properties": {
+        "Artifacts": {
+          "Packaging": "zip",
+          "Type": "codepipeline"
+        },
+        "Description": {
+          "Fn::Sub": "CodeBuild Project for ${ProjectId}"
+        },
+        "Environment": {
+          "ComputeType": "small",
+          "EnvironmentVariables": [
+            {
+              "Name": "S3_BUCKET",
+              "Value": {
+                "Ref": "S3Bucket"
+              }
+            }
+          ],
+          "Image": "aws/codebuild/eb-nodejs-6.10.0-amazonlinux-64:4.0.0",
+          "Type": "LINUX_CONTAINER"
+        },
+        "Name": {
+          "Ref": "ProjectId"
+        },
+        "ServiceRole": {
+          "Ref": "CodeBuildRole"
+        },
+        "Source": {
+          "Type": "codepipeline"
+        }
+      },
+      "Type": "AWS::CodeBuild::Project"
+    },
+    "CloudFormationTrustRole": {
+      "Description": "CloudFormation IAM service role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "cloudformation.amazonaws.com"
+                ]
+              }
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "codestar:*",
+                    "s3:*",
+                    "lambda:*",
+                    "dynamodb:*",
+                    "kinesis:*",
+                    "cloudformation:*",
+                    "sns:*",
+                    "config:*",
+                    "iam:*",
+                    "apigateway:*"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*"
+                }
+              ]
+            },
+            "PolicyName": "CloudFormationRolePolicy"
+          }
+        ],
+        "RoleName": {
+          "Fn::Sub": "CodeStarWorker-${ProjectId}-CFRole"
+        }
+      },
+      "Type": "AWS::IAM::Role"
+    },
+    "S3ArtifactBucketPolicy": {
+      "Description": "S3 bucket policy for AWS CodePipeline access",
+      "Properties": {
+        "Bucket": {
+          "Ref": "S3Bucket"
+        },
+        "PolicyDocument": {
+          "Id": "SSEAndSSLPolicy",
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:GetBucketVersioning"
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": false
+                }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": [
+                  {
+                    "Fn::GetAtt": [
+                      "CodePipelineTrustRole",
+                      "Arn"
+                    ]
+                  },
+                  {
+                    "Fn::GetAtt": [
+                      "CodeBuildRole",
+                      "Arn"
+                    ]
+                  },
+                  {
+                    "Fn::GetAtt": [
+                      "CloudFormationTrustRole",
+                      "Arn"
+                    ]
+                  }
+                ]
+              },
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:aws:s3:::${S3Bucket}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:s3:::${S3Bucket}/*"
+                }
+              ],
+              "Sid": "WhitelistedGet"
+            },
+            {
+              "Action": [
+                "s3:PutObject"
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": [
+                  {
+                    "Fn::GetAtt": [
+                      "CodePipelineTrustRole",
+                      "Arn"
+                    ]
+                  },
+                  {
+                    "Fn::GetAtt": [
+                      "CodeBuildRole",
+                      "Arn"
+                    ]
+                  }
+                ]
+              },
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:aws:s3:::${S3Bucket}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:s3:::${S3Bucket}/*"
+                }
+              ],
+              "Sid": "WhitelistedPut"
+            }
+          ],
+          "Version": "2012-10-17"
+        }
+      },
+      "Type": "AWS::S3::BucketPolicy"
+    },
+    "S3Bucket": {
+      "DeletionPolicy": "Retain",
+      "Description": "CodePipeline artifacts S3 bucket",
+      "Properties": {
+        "BucketName": {
+          "Fn::Sub": "aws-codestar-${AWS::Region}-${AWS::AccountId}-${ProjectId}"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${ProjectId}-S3Bucket"
+            }
+          }
+        ],
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        }
+      },
+      "Type": "AWS::S3::Bucket"
+    },
+    "CodePipelineTrustRole": {
+      "Description": "AWS CodePipeline IAM service role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "codepipeline.amazonaws.com"
+                ]
+              },
+              "Sid": 1
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "s3:*",
+                    "codecommit:*",
+                    "codebuild:*",
+                    "cloudformation:*"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*"
+                },
+                {
+                  "Action": [
+                    "iam:PassRole"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "CloudFormationTrustRole",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "PolicyName": "CodeStarWorkerCodePipelineRolePolicy"
+          }
+        ],
+        "RoleName": {
+          "Fn::Sub": "CodeStarWorker-${ProjectId}-CodePipeline"
+        }
+      },
+      "Type": "AWS::IAM::Role"
+    },
+    "ProjectPipeline": {
+      "DependsOn": [
+        "CodePipelineTrustRole",
+        "S3Bucket",
+        "CodeBuildProject",
+        "CloudFormationTrustRole"
+      ],
+      "Description": "CodePipeline deployment project",
+      "Properties": {
+        "ArtifactStore": {
+          "Location": {
+            "Ref": "S3Bucket"
+          },
+          "Type": "S3"
+        },
+        "Name": {
+          "Fn::Sub": "${ProjectId}-Pipeline"
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "CodePipelineTrustRole",
+            "Arn"
+          ]
+        },
+        "Stages": [
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Source",
+                  "Owner": "AWS",
+                  "Provider": "CodeCommit",
+                  "Version": 1
+                },
+                "Configuration": {
+                  "BranchName": "master",
+                  "PollForSourceChanges": false,
+                  "RepositoryName": {
+                    "Ref": "ProjectId"
+                  }
+                },
+                "InputArtifacts": [],
+                "Name": "ApplicationSource",
+                "OutputArtifacts": [
+                  {
+                    "Name": {
+                      "Fn::Sub": "${ProjectId}-SourceArtifact"
+                    }
+                  }
+                ],
+                "RunOrder": 1
+              }
+            ],
+            "Name": "Source"
+          },
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Provider": "CodeBuild",
+                  "Version": 1
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "ProjectId"
+                  }
+                },
+                "InputArtifacts": [
+                  {
+                    "Name": {
+                      "Fn::Sub": "${ProjectId}-SourceArtifact"
+                    }
+                  }
+                ],
+                "Name": "PackageExport",
+                "OutputArtifacts": [
+                  {
+                    "Name": {
+                      "Fn::Sub": "${ProjectId}-BuildArtifact"
+                    }
+                  }
+                ],
+                "RunOrder": 1
+              }
+            ],
+            "Name": "Build"
+          },
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Deploy",
+                  "Owner": "AWS",
+                  "Provider": "CloudFormation",
+                  "Version": 1
+                },
+                "Configuration": {
+                  "ActionMode": "CHANGE_SET_REPLACE",
+                  "Capabilities": "CAPABILITY_NAMED_IAM",
+                  "ChangeSetName": "pipeline-changeset",
+                  "RoleArn": {
+                    "Fn::GetAtt": [
+                      "CloudFormationTrustRole",
+                      "Arn"
+                    ]
+                  },
+                  "StackName": {
+                    "Fn::Sub": "awscodestar-${ProjectId}-lambda"
+                  },
+                  "ParameterOverrides": {
+                    "Fn::Sub": "{\"ProjectId\":\"${ProjectId}\"}"
+                  },
+                  "TemplatePath": {
+                    "Fn::Sub": "${ProjectId}-BuildArtifact::template-export.yml"
+                  }
+                },
+                "Name": "GenerateChangeSet",
+                "InputArtifacts": [
+                  {
+                    "Name": {
+                      "Fn::Sub": "${ProjectId}-BuildArtifact"
+                    }
+                  }
+                ],
+                "OutputArtifacts": [],
+                "RunOrder": 1
+              },
+              {
+                "ActionTypeId": {
+                  "Category": "Deploy",
+                  "Owner": "AWS",
+                  "Provider": "CloudFormation",
+                  "Version": 1
+                },
+                "Configuration": {
+                  "ActionMode": "CHANGE_SET_EXECUTE",
+                  "ChangeSetName": "pipeline-changeset",
+                  "StackName": {
+                    "Fn::Sub": "awscodestar-${ProjectId}-lambda"
+                  }
+                },
+                "InputArtifacts": [],
+                "Name": "ExecuteChangeSet",
+                "OutputArtifacts": [],
+                "RunOrder": 2
+              }
+            ],
+            "Name": "Deploy"
+          }
+        ]
+      },
+      "Type": "AWS::CodePipeline::Pipeline"
+    },
+    "SourceEvent": {
+      "Properties": {
+        "Description": "Amazon CloudWatch Events Rule to trigger pipeline execution",
+        "EventPattern": {
+          "detail": {
+            "event": [
+              "referenceCreated",
+              "referenceUpdated"
+            ],
+            "referenceName": [
+              "master"
+            ],
+            "referenceType": [
+              "branch"
+            ]
+          },
+          "detail-type": [
+            "CodeCommit Repository State Change"
+          ],
+          "resources": [
+            {
+              "Fn::GetAtt": [
+                "CodeCommitRepo",
+                "Arn"
+              ]
+            }
+          ],
+          "source": [
+            "aws.codecommit"
+          ]
+        },
+        "Name": {
+          "Fn::Sub": "awscodestar-${ProjectId}-SourceEvent"
+        },
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::Sub": "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${ProjectId}-Pipeline"
+            },
+            "Id": "ProjectPipelineTarget",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "SourceEventRole",
+                "Arn"
+              ]
+            }
+          }
+        ]
+      },
+      "Type": "AWS::Events::Rule"
+    },
+    "SourceEventRole": {
+      "Description": "IAM role to allow Amazon CloudWatch Events to trigger AWS CodePipeline execution",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "events.amazonaws.com"
+                ]
+              },
+              "Sid": 1
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "codepipeline:StartPipelineExecution"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${ProjectId}-Pipeline"
+                    }
+                  ]
+                }
+              ]
+            },
+            "PolicyName": "CodeStarWorkerCloudWatchEventPolicy"
+          }
+        ],
+        "RoleName": {
+          "Fn::Sub": "CodeStarWorker-${ProjectId}-event-rule"
+        }
+      },
+      "Type": "AWS::IAM::Role"
+    }
+  }
+}
