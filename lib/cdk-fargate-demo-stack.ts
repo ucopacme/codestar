@@ -17,10 +17,26 @@ export class CdkFargateDemoStack extends cdk.Stack {
     // Create ECS Cluster
     const cluster = new ecs.Cluster(this, 'Cluster', { vpc });
 
-    // Instantiate Fargate Service with just cluster and image
-    const fargateService = new ecs_patterns.LoadBalancedFargateService(this, "FargateService", {
-      cluster,
+    // create Logs
+    const logging = new ecs.AwsLogDriver({
+      streamPrefix: "HelloFargate",
+    })
+
+    // create task
+    const taskDef = new ecs.FargateTaskDefinition(this, "HelloFargateTaskDefinition", {
+      memoryLimitMiB: 512,
+      cpu: 256,
+    })
+    
+    taskDef.addContainer("AppContainer", {
       image: ecs.ContainerImage.fromRegistry("amazon/amazon-ecs-sample"),
+      logging,
+    })
+
+    // Instantiate ECS Service with just cluster and image
+    new ecs.FargateService(this, "HelloFargateService", {
+      cluster,
+      taskDefinition: taskDef
     });
 
     // Output the DNS where you can access your service
