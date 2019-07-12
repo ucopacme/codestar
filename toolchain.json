@@ -90,7 +90,7 @@
               }
             }
           ],
-          "Image": "aws/codebuild/eb-nodejs-6.10.0-amazonlinux-64:4.0.0",
+          "Image": "aws/codebuild/standard:2.0",
           "Type": "LINUX_CONTAINER"
         },
         "Name": {
