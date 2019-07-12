@@ -1,0 +1,45 @@
+{
+    "name": "",
+    "id": "",
+    "description": "",
+    "clientRequestToken": "",
+    "sourceCode": [
+        {
+            "source": {
+                "s3": {
+                    "bucketName": "",
+                    "bucketKey": ""
+                }
+            },
+            "destination": {
+                "codeCommit": {
+                    "name": ""
+                },
+                "gitHub": {
+                    "name": "",
+                    "description": "",
+                    "type": "",
+                    "owner": "",
+                    "privateRepository": true,
+                    "issuesEnabled": true,
+                    "token": ""
+                }
+            }
+        }
+    ],
+    "toolchain": {
+        "source": {
+            "s3": {
+                "bucketName": "",
+                "bucketKey": ""
+            }
+        },
+        "roleArn": "",
+        "stackParameters": {
+            "KeyName": ""
+        }
+    },
+    "tags": {
+        "KeyName": ""
+    }
+}
