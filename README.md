@@ -1,3 +1,11 @@
+# Helpful hints
+
+You'll need to install npm packages listed in packages.json
+
+```
+npm install
+```
+
 # Useful commands
 
  * `npm run build`   compile typescript to js
