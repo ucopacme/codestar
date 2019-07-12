@@ -21,20 +21,22 @@ phases:
       - whoami
       - pwd
       - which gem && gem --version && gem install cfn-nag && cfn_nag_scan --version
-      - which node && node --version && npm --version && npm install -g aws-cdk && cdk --version
+      - which node && node --version && npm --version && npm install && cdk --version
 
   build:
     commands:
 
+      # synthesize templates
+      - cdk synth
       # scan templates with cfn_nag 
-      - for i in templates/*yaml; do cfn_nag_scan -i $i; done
+      - for i in cdk.out/*Stack.template.json; do echo scanning template $i;echo;cfn_nag_scan -i $i;echo; done
 
       # Do not remove this statement. This command is required for AWS CodeStar projects.
       # Update the AWS Partition, AWS Region, account ID and project ID in the project ARN on template-configuration.json file so AWS CloudFormation can tag project resources.
-      - sed -i.bak 's/\$PARTITION\$/'${PARTITION}'/g;s/\$AWS_REGION\$/'${AWS_REGION}'/g;s/\$ACCOUNT_ID\$/'${ACCOUNT_ID}'/g;s/\$PROJECT_ID\$/'${PROJECT_ID}'/g' templates/template-configuration.json
+      - sed -i.bak 's/\$PARTITION\$/'${PARTITION}'/g;s/\$AWS_REGION\$/'${AWS_REGION}'/g;s/\$ACCOUNT_ID\$/'${ACCOUNT_ID}'/g;s/\$PROJECT_ID\$/'${PROJECT_ID}'/g' template-configuration.json
 
 artifacts:
   type: zip
   files:
-    - templates/*yaml
-    - templates/template-configuration.json
+    - cdk.out/*Stack.template.json
+    - template-configuration.json
