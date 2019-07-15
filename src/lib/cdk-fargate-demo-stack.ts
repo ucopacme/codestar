@@ -37,8 +37,8 @@ export class CdkFargateDemoStack extends cdk.Stack {
       taskDefinition: taskDef
     });
 
-    // Output the DNS where you can access your service
-    new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: fargateService.loadBalancer.loadBalancerDnsName });
+    // Output ALB DNS in front of fargate service
+    // new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: fargateService.loadBalancer.loadBalancerDnsName });
   }
 
 }
