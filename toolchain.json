@@ -128,16 +128,20 @@
               "Statement": [
                 {
                   "Action": [
-                    "codestar:*",
-                    "s3:*",
-                    "lambda:*",
-                    "dynamodb:*",
-                    "kinesis:*",
+                    "apigateway:*",
                     "cloudformation:*",
-                    "sns:*",
+                    "codestar:*",
                     "config:*",
+                    "dynamodb:*",
+                    "ec2:*",
+                    "ecs:*",
+                    "elasticloadbalancing:*",
                     "iam:*",
-                    "apigateway:*"
+                    "lambda:*",
+                    "logs:*",
+                    "kinesis:*",
+                    "s3:*",
+                    "sns:*"
                   ],
                   "Effect": "Allow",
                   "Resource": "*"
@@ -430,13 +434,13 @@
                     ]
                   },
                   "StackName": {
-                    "Fn::Sub": "awscodestar-${ProjectId}-lambda"
+                    "Fn::Sub": "awscodestar-${ProjectId}-Hello-Fargate"
                   },
                   "ParameterOverrides": {
                     "Fn::Sub": "{\"ProjectId\":\"${ProjectId}\"}"
                   },
                   "TemplatePath": {
-                    "Fn::Sub": "${ProjectId}-BuildArtifact::template-export.yml"
+                    "Fn::Sub": "${ProjectId}-BuildArtifact::cdk.out/HelloFargate.template.json"
                   }
                 },
                 "Name": "GenerateChangeSet",
@@ -461,7 +465,7 @@
                   "ActionMode": "CHANGE_SET_EXECUTE",
                   "ChangeSetName": "pipeline-changeset",
                   "StackName": {
-                    "Fn::Sub": "awscodestar-${ProjectId}-lambda"
+                    "Fn::Sub": "awscodestar-${ProjectId}-Hello-Fargate"
                   }
                 },
                 "InputArtifacts": [],
