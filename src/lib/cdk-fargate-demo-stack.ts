@@ -3,8 +3,7 @@ import cdk = require('@aws-cdk/core');
 import ec2 = require('@aws-cdk/aws-ec2');
 import ecs = require('@aws-cdk/aws-ecs');
 import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
-import ecsPatterns = require('@aws-cdk/ecsPatterns');
-
+import ecs_patterns = require('@aws-cdk/aws-ecs-patterns');
 
 export class CdkFargateDemoStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
@@ -48,7 +47,7 @@ export class CdkFargateDemoStack extends cdk.Stack {
     // });
 
     // load balanced fargate service
-    const loadBalancedFargateService = new ecsPatterns.LoadBalancedFargateService(this, 'FargateService', {
+    const loadBalancedFargateService = new ecs_patterns.LoadBalancedFargateService(this, 'FargateService', {
     cluster,
     memoryLimitMiB: 1024,
     cpu: 512,
