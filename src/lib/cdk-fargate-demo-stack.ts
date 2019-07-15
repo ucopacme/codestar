@@ -47,7 +47,7 @@ export class CdkFargateDemoStack extends cdk.Stack {
     });
 
     // Output ALB DNS
-    new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: alb.loadBalancer.loadBalancerDnsName });
+    new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: alb.loadBalancerDnsName });
   }
 
 }
