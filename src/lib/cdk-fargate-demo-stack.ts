@@ -2,8 +2,6 @@ import cdk = require('@aws-cdk/core');
 // import apigateway = require('@aws-cdk/aws-apigateway');
 import ec2 = require('@aws-cdk/aws-ec2');
 import ecs = require('@aws-cdk/aws-ecs');
-import ecs_patterns = require('@aws-cdk/aws-ecs-patterns');
-import lambda = require('@aws-cdk/aws-lambda');
 
 
 export class CdkFargateDemoStack extends cdk.Stack {
@@ -34,7 +32,7 @@ export class CdkFargateDemoStack extends cdk.Stack {
     })
 
     // Instantiate ECS Service with just cluster and image
-    new ecs.FargateService(this, "HelloFargateService", {
+    const fargateService = new ecs.FargateService(this, "HelloFargateService", {
       cluster,
       taskDefinition: taskDef
     });
