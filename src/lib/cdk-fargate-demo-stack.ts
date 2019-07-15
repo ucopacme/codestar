@@ -3,6 +3,7 @@ import cdk = require('@aws-cdk/core');
 import ec2 = require('@aws-cdk/aws-ec2');
 import ecs = require('@aws-cdk/aws-ecs');
 import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
+import ecsPatterns = require('@aws-cdk/ecsPatterns');
 
 
 export class CdkFargateDemoStack extends cdk.Stack {
@@ -39,15 +40,23 @@ export class CdkFargateDemoStack extends cdk.Stack {
     });
 
     // Application Load Balancer
-    const alb = new elbv2.ApplicationLoadBalancer(this, 'ALB', { vpc, internetFacing: true });
-    const listener = alb.addListener('Listener', { port: 80 });
-    const target = listener.addTargets('ECS', {
-    port: 80,
-    targets: [service]
+    // const alb = new elbv2.ApplicationLoadBalancer(this, 'ALB', { vpc, internetFacing: true });
+    // const listener = alb.addListener('Listener', { port: 80 });
+    // const target = listener.addTargets('ECS', {
+    // port: 80,
+    // targets: [service]
+    // });
+
+    // load balanced fargate service
+    const loadBalancedFargateService = new ecsPatterns.LoadBalancedFargateService(this, 'FargateService', {
+    cluster,
+    memoryLimitMiB: 1024,
+    cpu: 512,
+    image: ecs.ContainerImage.fromRegistry("amazon/amazon-ecs-sample"),
     });
 
     // Output ALB DNS
-    new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: alb.loadBalancerDnsName });
+    new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: loadBalancedFargateService.loadBalancer.loadBalancerDnsName });
   }
 
 }
