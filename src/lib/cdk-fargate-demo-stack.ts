@@ -2,6 +2,7 @@ import cdk = require('@aws-cdk/core');
 // import apigateway = require('@aws-cdk/aws-apigateway');
 import ec2 = require('@aws-cdk/aws-ec2');
 import ecs = require('@aws-cdk/aws-ecs');
+import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
 
 
 export class CdkFargateDemoStack extends cdk.Stack {
@@ -32,13 +33,21 @@ export class CdkFargateDemoStack extends cdk.Stack {
     })
 
     // Instantiate ECS Service with just cluster and image
-    const fargateService = new ecs.FargateService(this, "HelloFargateService", {
+    const service = new ecs.FargateService(this, "HelloFargateService", {
       cluster,
       taskDefinition: taskDef
     });
 
-    // Output ALB DNS in front of fargate service
-    // new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: fargateService.loadBalancer.loadBalancerDnsName });
+    // Application Load Balancer
+    const alb = new elbv2.ApplicationLoadBalancer(this, 'ALB', { vpc, internetFacing: true });
+    const listener = alb.addListener('Listener', { port: 80 });
+    const target = listener.addTargets('ECS', {
+    port: 80,
+    targets: [service]
+    });
+
+    // Output ALB DNS
+    new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: alb.loadBalancer.loadBalancerDnsName });
   }
 
 }
