@@ -1,4 +1,4 @@
-# codestar cli bootstrap
+# codestar cli bootstrap with toolchain and source
 
 # bootstrap a codestar template from a toolchain and source
 Create an init file with cli
@@ -52,9 +52,8 @@ aws codestar create-project --generate-cli-skeleton |jq .
 }
 ```
 
-Modify init template to suit your needs (note that you'll chose github or codecommit for
-the sourcecode. You may remove other paramaters as needed eg
-clientRequestToken):
+Modify init template to suit your needs (note that you'll use github or codecommit for
+the sourcecode. You may remove other paramaters as needed eg clientRequestToken):
 
 ```
 cat /tmp/init-template.json
