@@ -54,6 +54,12 @@ export class CdkFargateDemoStack extends cdk.Stack {
     image: ecs.ContainerImage.fromRegistry("amazon/amazon-ecs-sample"),
     });
 
+    // Project Id parameter
+    new cdk.CfnParameter(this, 'ProjectId', {
+    type: 'String',
+    default: "manhatten",
+    });
+
     // Output ALB DNS
     new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: loadBalancedFargateService.loadBalancer.loadBalancerDnsName });
   }
