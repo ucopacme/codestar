@@ -16,36 +16,6 @@ export class CdkFargateDemoStack extends cdk.Stack {
     // Create ECS Cluster
     const cluster = new ecs.Cluster(this, 'Cluster', { vpc });
 
-    // create Logs
-    const logging = new ecs.AwsLogDriver({
-      streamPrefix: "HelloFargate",
-    })
-
-    // create task
-    const taskDef = new ecs.FargateTaskDefinition(this, "HelloFargateTaskDefinition", {
-      memoryLimitMiB: 512,
-      cpu: 256,
-    })
-    
-    taskDef.addContainer("AppContainer", {
-      image: ecs.ContainerImage.fromRegistry("amazon/amazon-ecs-sample"),
-      logging,
-    })
-
-    // Instantiate ECS Service with just cluster and image
-    const service = new ecs.FargateService(this, "HelloFargateService", {
-      cluster,
-      taskDefinition: taskDef
-    });
-
-    // Application Load Balancer
-    // const alb = new elbv2.ApplicationLoadBalancer(this, 'ALB', { vpc, internetFacing: true });
-    // const listener = alb.addListener('Listener', { port: 80 });
-    // const target = listener.addTargets('ECS', {
-    // port: 80,
-    // targets: [service]
-    // });
-
     // load balanced fargate service
     const loadBalancedFargateService = new ecs_patterns.LoadBalancedFargateService(this, 'FargateService', {
     cluster,
