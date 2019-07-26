@@ -95,11 +95,19 @@ cat /tmp/init-template.json
 }
 
 Create your new codestar project 
+
 ```
 aws codestar create-project --cli-input-json file:///tmp/init-template.json
 ```
 
+Hint: if you get this error:
+
 ```
+An error occurred (AccessDeniedException) when calling the CreateProject operation: Cross-account pass role is not allowed.
+```
+
+check the init template and make sure the toolchain roleArn exists and is correct (account number?)
+
 
 # test or modify the toolchain of existing codestar project
 
