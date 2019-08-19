@@ -31,7 +31,7 @@ export class BaseAppStack extends cdk.Stack {
     let cfnDataBucket = DataBucket.node.defaultChild as s3.CfnBucket;
     cfnDataBucket.addPropertyOverride('LoggingConfiguration.DestinationBucketName', LogBucket.bucketName);
 
-    new cdk.CfnOutput(this, 'LogBucket', { value: LogBucket });
+    new cdk.CfnOutput(this, 'LogBucket', { value: LogBucket.bucketName });
 
   }
 
