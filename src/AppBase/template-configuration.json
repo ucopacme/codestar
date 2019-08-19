@@ -1,0 +1,10 @@
+{
+  "Tags":
+  {
+    "awscodestar:projectArn":"arn:$PARTITION$:codestar:$AWS_REGION$:$ACCOUNT_ID$:project/$PROJECT_ID$",
+    "Application": "DQ",
+    "Environment": "Dev",
+    "ServiceOwner": "carolinmol.mathew@ucop.edu",
+    "Team": "Big"
+  }
+}
