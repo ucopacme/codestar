@@ -45,5 +45,5 @@ phases:
 artifacts:
   type: zip
   files:
-    - cdk.out/*template.json
-    - template-configuration.json
+    - src/AppBase/cdk.out/*template.json
+    - src/AppBase/template-configuration.json
