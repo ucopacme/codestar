@@ -20,14 +20,16 @@ phases:
       - env
       - whoami
       - pwd
+      # install cfn-nag
       - which gem && gem --version && gem install cfn-nag && cfn_nag_scan --version
+      # change to app dir
+      - cd src/AppBase/
+      # install cdk and dependencies
       - which node && node --version && npm --version && npm install -g aws-cdk && npm install && cdk --version
 
   build:
     commands:
 
-      # change to app dir
-      - cd src/AppBase/
       # situational awareness
       - ls -ltar
       - pwd
