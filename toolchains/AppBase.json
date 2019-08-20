@@ -426,7 +426,7 @@
                 "Configuration": {
                   "ActionMode": "CHANGE_SET_REPLACE",
                   "Capabilities": "CAPABILITY_NAMED_IAM",
-                  "ChangeSetName": "pipeline-changeset",
+                  "ChangeSetName": "app-base-pipeline-changeset",
                   "RoleArn": {
                     "Fn::GetAtt": [
                       "CloudFormationTrustRole",
@@ -440,7 +440,7 @@
                     "Fn::Sub": "{\"ProjectId\":\"${ProjectId}\"}"
                   },
                   "TemplatePath": {
-                    "Fn::Sub": "${ProjectId}-BuildArtifact::cdk.out/AppBase.template.json"
+                    "Fn::Sub": "${ProjectId}-BuildArtifact::AppBase.template.json"
                   }
                 },
                 "Name": "GenerateChangeSet",
