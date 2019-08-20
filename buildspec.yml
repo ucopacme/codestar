@@ -29,7 +29,6 @@ phases:
       # change to app dir
       - cd src/AppBase/
       # situational awareness
-      - cd src/AppBase/
       - ls -ltar
       - pwd
       # synthesize templates
