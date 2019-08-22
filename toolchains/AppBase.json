@@ -440,7 +440,7 @@
                     "Fn::Sub": "{\"ProjectId\":\"${ProjectId}\"}"
                   },
                   "TemplatePath": {
-                    "Fn::Sub": "${ProjectId}-BuildArtifact::AppBase.template.json"
+                    "Fn::Sub": "${ProjectId}-BuildArtifact::src/AppBase/cdk.out/AppBase.template.json"
                   }
                 },
                 "Name": "GenerateChangeSet",
