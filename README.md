@@ -1,5 +1,10 @@
 # codestar cli bootstrap with toolchain and source
 
+## create a src object
+```
+cd src/HelloFargate/; zip -r "../HelloFargate.zip" *; cd ../..
+```
+
 # bootstrap a codestar template from a toolchain and source
 Create an init file with cli
 
@@ -93,8 +98,9 @@ cat /tmp/init-template.json
     "Application": "yofargate"
   }
 }
+```
 
-Create your new codestar project 
+Create your new codestar project
 
 ```
 aws codestar create-project --cli-input-json file:///tmp/init-template.json
@@ -130,6 +136,14 @@ includes a general purpose build environment that can synthesize cloudformation
 from cdk and evaluate the resulting cloud formation templates with cfn nag.
 It follows a pattern of build, test, create change set and finally deploy
 change set.
+
+### permission boundaries
+
+Toolchain contains several iam resources attached to codepipeline stages. They
+need to be configured to have the permissions needed to build whatever is being
+built by codepipeline stages. Note the permission boundaries confine resources
+to awscodestar-$ProjectId*.
+
 
 ## source
 
